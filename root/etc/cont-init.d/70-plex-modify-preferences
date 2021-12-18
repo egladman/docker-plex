@@ -60,7 +60,7 @@ main() {
 
   # Comma delimited string of https/http urls used to access server
   if [[ -n "$ADVERTISE_URLS" ]]; then
-    update_or_insert_attr allowedNetworks "$ADVERTISE_URLS" "$XML_CONFIG"
+    update_or_insert_attr customConnections "$ADVERTISE_URLS" "$XML_CONFIG"
   fi
 
   # Human readable name used to identify server on clients
