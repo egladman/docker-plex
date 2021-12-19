@@ -63,4 +63,4 @@ jobs:
           password: ${{ secrets[matrix.token_secret_name] }}
 
       - name: Build ${{ matrix.architecture }} image
-        run: make image-push TARGET_ARCH=${{ matrix.architecture }} BUILDX_PLATFORMS=${{ matrix.platform }} REPOSITORY=${{ matrix.repository }} REPOSITORY_PREFIX=${{ matrix.registry }}
+        run: make image-push TARGET_ARCH=${{ matrix.architecture }} TARGET_PLATFORMS=${{ matrix.platform }} REPOSITORY=${{ matrix.repository }} REPOSITORY_PREFIX=${{ matrix.registry }}
