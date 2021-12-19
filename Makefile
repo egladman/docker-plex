@@ -81,7 +81,7 @@ image:
 	$(DOCKER) build . --file $(DOCKERFILE) $(DOCKER_BUILD_FLAGS)
 
 image-push:
-ifeq ($(BUILDX_ENABLED),true)
+ifeq ($(BUILDX_INSTALLED),true)
 	$(MAKE) image DOCKER_BUILD_FLAGS+="--push"
 else
 	$(DOCKER) push $(REPOSITORY) --all-tags
