@@ -12,7 +12,12 @@ REPOSITORY := plex
 
 GIT_BRANCH := $(shell $(GIT) rev-parse --abbrev-ref HEAD | $(SED) 's/[^a-zA-Z0-9-]//g') # Sanitize
 GIT_HASH := $(shell $(GIT) rev-parse HEAD)
-ARCH := $(shell uname -p)
+ARCH ?= $(shell uname -p)
+
+DOCKERFILE_SUFFIX := .$(ARCH)
+ifneq (,$(filter $(ARCH),x86_64 i386))
+DOCKERFILE_SUFFIX :=
+endif
 
 override TAGS += branch-$(GIT_BRANCH) \
                  git-$(GIT_HASH)
@@ -45,7 +50,7 @@ $(info Docker buildx enabled: $(BUILDX_ENABLED))
 .PHONY: image image-push
 
 image:
-	$(DOCKER) build . $(DOCKER_BUILD_FLAGS)
+	$(DOCKER) build . --file Dockerfile$(DOCKERFILE_SUFFIX) $(DOCKER_BUILD_FLAGS)
 
 image-push:
 ifeq ($(BUILDX_ENABLED),true)
