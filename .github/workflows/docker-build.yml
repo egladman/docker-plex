@@ -38,4 +38,4 @@ jobs:
         uses: docker/setup-buildx-action@v1
 
       - name: Build ${{ matrix.architecture }} image
-        run: make image ARCH=${{ matrix.architecture }} BUILDX_PLATFORMS=${{ matrix.platform }}
+        run: make image TARGER_ARCH=${{ matrix.architecture }} BUILDX_PLATFORMS=${{ matrix.platform }}
