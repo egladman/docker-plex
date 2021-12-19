@@ -7,29 +7,26 @@ DOCKER_BUILD_FLAGS :=
 SPACE=$() $()
 COMMA=,
 
-TAG_LATEST := true
+TAG_WITH_LATEST := true
 REPOSITORY := plex
 
-GIT_BRANCH := $(shell $(GIT) rev-parse --abbrev-ref HEAD | $(SED) 's/[^a-zA-Z0-9-]//g') # Sanitize
 GIT_HASH := $(shell $(GIT) rev-parse HEAD)
-ARCH ?= $(shell uname -p)
+TARGET_ARCH ?= $(shell uname -m)
 
-DOCKERFILE_SUFFIX := .$(ARCH)
-ifneq (,$(filter $(ARCH),x86_64 i386))
-DOCKERFILE_SUFFIX :=
+ifneq ($(TARGET_ARCH),x86_64)
+    DOCKERFILE_SUFFIX := .$(TARGET_ARCH)
 endif
 
-override TAGS += branch-$(GIT_BRANCH) \
-                 git-$(GIT_HASH)
+override TAGS += git-$(GIT_HASH)
 
 # Tag image with 'latest' by default
-ifeq ($(TAG_LATEST),true)
-override TAGS += latest
+ifeq ($(TAG_WITH_LATEST),true)
+    override TAGS += latest
 endif
 
 # Auto enable buildx when available
 BUILDX_ENABLED := $(shell docker buildx version > /dev/null 2>&1 && printf true || printf false)
-BUILDX_PLATFORMS := linux/amd64 linux/arm64
+BUILDX_PLATFORMS := linux/amd64 linux/arm64 linux/arm/v7
 
 ifdef REPOSITORY_PREFIX
     override REPOSITORY := $(REPOSITORY_PREFIX)/$(REPOSITORY)

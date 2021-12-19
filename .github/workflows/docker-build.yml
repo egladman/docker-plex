@@ -6,8 +6,9 @@ jobs:
   build:
 
     strategy:
+      fail-fast: false
       matrix:
-        registry: [ghcr.io, docker.io]
+        architecture: [x86_64, aarch64, armhf]
         
         include:
           - architecture: x86_64
@@ -36,5 +37,5 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
-      - name: Build {{ matrix.platform }} image
-        run: make image ARCH={{ matrix.architecture }} BUILDX_PLATFORMS={{ matrix.platform }}
+      - name: Build ${{ matrix.architecture }} image
+        run: make image TARGET_ARCH=${{ matrix.architecture }} BUILDX_PLATFORMS=${{ matrix.platform }}

@@ -1,28 +1,32 @@
 name: Publish Image
 
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-
 on:
   schedule:
-    - cron: '45 23 * * 1,5'
+    - cron: '45 23 * * 1'
   push:
-    branches: [ main,master ]
+    branches: [ main, master ]
     # Publish semver tags as releases.
     tags: [ 'v*.*.*' ]
-    paths-ignore:
-      - '**.md'
 
 jobs:
   build:
 
     strategy:
+      fail-fast: false
       matrix:
-        registry: [ghcr.io, docker.io]
-        
+        architecture: [ x86_64, aarch64, armhf ]
+        registry: [ ghcr.io, docker.io ]
+
         include:
+          - architecture: x86_64
+            platform: linux/amd64
+
+          - architecture: aarch64
+            platform: linux/arm64
+
+          - architecture: armhf
+            platform: linux/arm/v7
+
           - registry: ghcr.io
             registry_username: ${{ github.actor }}
             repository: ${{ github.repository_owner }}/plex
@@ -42,19 +46,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
+      - name: Run ShellCheck
+        uses: ludeeus/action-shellcheck@master
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
-      # https://github.com/docker/login-action
-      - name: Log into registry ${{ matrix.registry }}
-        uses: docker/login-action@28218f9b04b4f3f62068d7b6ce6ca5b26e35336c
-        with:
-          registry: ${{ matrix.registry }}
-          username: ${{ matrix.registry_username }}
-          password: ${{ secrets[matrix.token_secret_name] }}
-  
-      - name: Build/Push image
-        run: make image-push REPOSITORY=${{ matrix.repository }} REPOSITORY_PREFIX=${{ matrix.registry }}
+      - name: Build ${{ matrix.architecture }} image
+        run: make image-push TARGET_ARCH=${{ matrix.architecture }} BUILDX_PLATFORMS=${{ matrix.platform }} REPOSITORY=${{ matrix.repository }} REPOSITORY_PREFIX=${{ matrix.registry }}
