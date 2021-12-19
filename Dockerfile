@@ -43,7 +43,7 @@ RUN set -eux; \
     rm -rf /opencl-intel; \
     [ -z ${PLEX_RELEASE+x} ] && PLEX_RELEASE=$(curl -sX GET 'https://plex.tv/api/downloads/5.json' | jq -r '.computer.Linux.version'); \
     echo "**** install plex ${PLEX_RELEASE} ****"; \
-    curl -o /tmp/plexmediaserver.deb -L "${PLEX_DOWNLOAD}/${PLEX_RELEASE}/debian/plexmediaserver_${PLEX_RELEASE}_${PLEX_ARCH}.deb"; \
+    curl -o /tmp/plexmediaserver.deb -Lv "${PLEX_DOWNLOAD}/${PLEX_RELEASE}/debian/plexmediaserver_${PLEX_RELEASE}_${PLEX_ARCH}.deb"; \
     dpkg -i /tmp/plexmediaserver.deb; \
     echo "**** ensure abc user's home folder is /app ****"; \
     usermod -d /app abc; \
