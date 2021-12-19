@@ -55,5 +55,12 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
+      - name: Log into registry ${{ matrix.registry }}
+        uses: docker/login-action@28218f9b04b4f3f62068d7b6ce6ca5b26e35336c
+        with:
+          registry: ${{ matrix.registry }}
+          username: ${{ matrix.registry_username }}
+          password: ${{ secrets[matrix.token_secret_name] }}
+
       - name: Build ${{ matrix.architecture }} image
         run: make image-push TARGET_ARCH=${{ matrix.architecture }} BUILDX_PLATFORMS=${{ matrix.platform }} REPOSITORY=${{ matrix.repository }} REPOSITORY_PREFIX=${{ matrix.registry }}
