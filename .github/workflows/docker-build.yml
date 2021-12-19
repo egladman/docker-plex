@@ -36,5 +36,5 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
-      - name: Build {{ matrix.platform }} image
+      - name: Build ${{ matrix.architecture }} image
         run: make image ARCH=${{ matrix.architecture }} BUILDX_PLATFORMS=${{ matrix.platform }}
