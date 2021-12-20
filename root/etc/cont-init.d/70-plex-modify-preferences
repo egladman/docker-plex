@@ -1,71 +1,111 @@
 #!/usr/bin/with-contenv bash
 
-XML_CONFIG="/config/Library/Application Support/Plex Media Server/Preferences.xml"
+set -o pipefail -o errexit
 
-# Fallback to ALLOWED_NETWORKS value
-NOAUTH_NETWORKS="${NOAUTH_NETWORKS:-$ALLOWED_NETWORKS}"
+PLEX_PREFERENCES_PATH="${PLEX_PREFERENCES_PATH:-/config/Library/Application Support/Plex Media Server/Preferences.xml}"
+DEBUG=${DEBUG:-0}
 
-update_or_insert_attr() {
-  # Usage: update_or_replace_attr <attribute> <value> <xmlpath>
+# Backwards compatibility for those who
+# migrated from image https://github.com/plexinc/pms-docker
+ADVERTISE_URLS="${ADVERTISE_URLS:-$ADVERTISE_IP}"
 
-  local element attribute_name attribute_value xml_path
-  element="/Preferences"
+_log() {
+    # Usage: _log <prefix> <message>
+    #        _log WARN "hello world"
+
+    printf '%b\n' "[${1:: 4}] ${0##*/} ${2}"
+}
+
+log::info() {
+    _log "INFO" "$*"
+}
+
+log::debug() {
+    [[ "$DEBUG" -eq 0 ]] && return
+    _log "DEBUG" "$*"
+}
+
+plex::set_preference() {
+  # Usage: plex::set_preference <attribute> <value>
+  #        plex::set_preference <attribute> <value> <xmlpath>
+
+  local attribute_name attribute_value xml_path
   attribute_name="${1:?}"
   attribute_value="${2:?}"
-  xml_path="${3:?}"
+  xml_path="${3:-$PLEX_PREFERENCES_PATH}"
 
   local response
-  response="$(xmlstarlet select --text --template --match "$element" --value-of "@${attribute_name}" "${xml_path}")"
+  response="$(xmlstarlet select --text --template --match "/Preferences" --value-of "@${attribute_name}" "${xml_path}")"
+
+  log::debug "Preference '${attribute_name}' current value: '${response}'"
+  log::debug "Preference '${attribute_name}' desired value: '${attribute_value}'"
 
   # Only write to file if the desired value differs from the current
   if [[ "$response" == "$attribute_value" ]]; then
+     log::debug "Attribute '${attribute_name}' already has desired value. Skipping..."
      return
   fi
 
-  xmlstarlet edit --inplace --insert "$element" --type attr --name "$attribute_name" --value "$attribute_value" "$xml_path"
+  response="$(xmlstarlet select --template --value-of "count(/Preferences/@${attribute_name})" "${xml_path}")"
+  response=$((response + 0))
+
+  log::debug "Attribute '${attribute_name}' count: '${response}'"
+  if [[ $response -eq 1 ]]; then
+      log::debug "Updating attribute '${attribute_name}' to '${attribute_value}'"
+      xmlstarlet edit --inplace --update "/Preferences/@${attribute_name}" --value "${attribute_value}" "${xml_path}"
+      return
+  elif [[ $response -gt 1 ]]; then
+      log::info "Attribute is defined more than once."  
+      exit 1
+  fi
+
+  log::debug "Inserting attribute '${attribute_name}' with value '${attribute_value}'"
+  xmlstarlet edit --inplace --insert "/Preferences" --type attr --name "${attribute_name}" --value "${attribute_value}" "${xml_path}"
 }
 
-ensure_xml_exists() {
-  # Usage: ensure_xml_exists <xml_path>
+plex::ensure_preferences_exists() {
+  # Usage: plex::ensure_preferences_exists <xml_path>
 
-  if [[ -e "${1:?}" ]]; then
-     printf '%s\n' "File '$1' already exists. Skipping..."
+  local xml_path parent
+  xml_path="${1:-$PLEX_PREFERENCES_PATH}"
+
+  log::debug "XML path: ${xml_path}"
+  if [[ -e "${xml_path:?}" ]]; then
+     printf '%s\n' "File '${xml_path}' already exists. Skipping..."
      return
   fi
 
-  local parent
-  parent="$(dirname "${1:?}")"
-
+  parent="$(dirname "$xml_path")"
   if [[ ! -d "$parent" ]]; then
      mkdir -p "$parent"
   fi
 
-  printf '%s\n' "<?xml version=\"1.0\" encoding=\"utf-8\"?><Preferences/>" > "$1"
+  printf '%s\n' "<?xml version=\"1.0\" encoding=\"utf-8\"?><Preferences/>" > "$xml_path"
 
   chown -R abc:abc "$parent"
 }
 
 main() {
-  ensure_xml_exists "$XML_CONFIG"
+  plex::ensure_preferences_exists
 
   # Comma delimited string of ip cidr blocks that should be considered local
   if [[ -n "$ALLOWED_NETWORKS" ]]; then
-    update_or_insert_attr allowedNetworks "$ALLOWED_NETWORKS" "$XML_CONFIG"
+    plex::set_preference allowedNetworks "$ALLOWED_NETWORKS"
   fi
 
   # Comma delimited string of ip cidr blocks that shouldn't require auth
   if [[ -n "$NOAUTH_NETWORKS" ]]; then
-    update_or_insert_attr LanNetworksBandwidth "$NOAUTH_NETWORKS" "$XML_CONFIG"
+    plex::set_preference LanNetworksBandwidth "$NOAUTH_NETWORKS"
   fi
 
   # Comma delimited string of https/http urls used to access server
   if [[ -n "$ADVERTISE_URLS" ]]; then
-    update_or_insert_attr customConnections "$ADVERTISE_URLS" "$XML_CONFIG"
+    plex::set_preference customConnections "$ADVERTISE_URLS"
   fi
 
   # Human readable name used to identify server on clients
   if [[ -n "$SERVER_NAME" ]]; then
-    update_or_insert_attr FriendlyName "$SERVER_NAME" "$XML_CONFIG"
+    plex::set_preference FriendlyName "$SERVER_NAME"
   fi
 }
 
