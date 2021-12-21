@@ -107,6 +107,8 @@ main() {
   if [[ -n "$SERVER_NAME" ]]; then
     plex::set_preference FriendlyName "$SERVER_NAME"
   fi
+
+  plex::set_preference TranscoderTempDirectory "/transcode"
 }
 
 main
