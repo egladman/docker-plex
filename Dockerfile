@@ -41,6 +41,7 @@ RUN set -eux; \
     done; \
     dpkg -i /opencl-intel/*.deb; \
     rm -rf /opencl-intel; \
+    mkdir /transcode; \
     [ -z ${PLEX_RELEASE+x} ] && PLEX_RELEASE=$(curl -sX GET 'https://plex.tv/api/downloads/5.json' | jq -r '.computer.Linux.version'); \
     echo "**** install plex ${PLEX_RELEASE} ****"; \
     curl -o /tmp/plexmediaserver.deb -Lv "${PLEX_DOWNLOAD}/${PLEX_RELEASE}/debian/plexmediaserver_${PLEX_RELEASE}_${PLEX_ARCH}.deb"; \

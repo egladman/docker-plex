@@ -22,4 +22,5 @@ fi
 # permissions (non-recursive) on config root and folders
 chown abc:abc \
 	/config \
-	/config/*
+	/config/* \
+	/transcode
