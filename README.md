@@ -87,6 +87,6 @@ networks:
       driver: default
       config:
         - subnet: "172.28.0.0/16"
-``**
+```
 
 *Note:* `192.168.1.34:32400` is the ip address of the docker host
