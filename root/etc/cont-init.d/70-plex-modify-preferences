@@ -55,7 +55,7 @@ plex::set_preference() {
       xmlstarlet edit --inplace --update "/Preferences/@${attribute_name}" --value "${attribute_value}" "${xml_path}"
       return
   elif [[ $response -gt 1 ]]; then
-      log::info "Attribute is defined more than once."  
+      log::info "Attribute '${attribute_name}' is defined more than once."
       exit 1
   fi
 
@@ -71,7 +71,7 @@ plex::ensure_preferences_exists() {
 
   log::debug "XML path: ${xml_path}"
   if [[ -e "${xml_path:?}" ]]; then
-     printf '%s\n' "File '${xml_path}' already exists. Skipping..."
+     log::debug "File '${xml_path}' already exists. Skipping..."
      return
   fi
 
@@ -111,4 +111,4 @@ main() {
   plex::set_preference TranscoderTempDirectory "/transcode"
 }
 
-main
+main && log::debug "Finished"
