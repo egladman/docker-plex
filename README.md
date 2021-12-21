@@ -33,7 +33,7 @@ make image
 | `DEBUG`            | Print debug logs for 70-plex-modify-preferences                                                                               | `0`                   |
 | `ALLOWED_NETWORKS` | A comma seperated list of IP addresses or IP/netmasks entries for networks that are considered to be local                    |                       |
 | `NOAUTH_NETWORKS`  | A comma seperated list of IP addresses or IP/netmasks entries for networks that are allowed to access Plex without logging in |                       |
-| `ADVERTISE_URLS`   | Custom server access URLs                                                                                                     |                       |
+| `ADVERTISE_URLS`   | A comma seperated list of custom server access URLs                                                                           |                       |
 | `SERVER_NAME`      | Friendly name used to indentify server on clients                                                                             |                       |
 | `PUID`             | UserID                                                                                                                        |                       |
 | `GUID`             | GroupID                                                                                                                       |                       |
